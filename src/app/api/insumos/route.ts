@@ -107,6 +107,8 @@ export const POST = async (request: Request) => {
     const toInsert: InsumoInsert[] = [];
     const toUpdate: InsumoInsert[] = [];
 
+    const updatedFields: { [hour: string]: (keyof InsumoInsert)[] } = {};
+
     data.insumos.forEach((newInsumo) => {
       const existing = existingInsumos.find((x) => x.hour === newInsumo.hour);
 
@@ -117,19 +119,26 @@ export const POST = async (request: Request) => {
           ...newInsumo,
         });
       } else {
-        Object.keys(newInsumo).some((key) => {
+        Object.keys(newInsumo).forEach((key) => {
           if (!constantFields.includes(key as keyof InsumoInsert)) {
             if (
               existing[key as keyof InsumoInsert] !==
               newInsumo[key as keyof typeof newInsumo]
             ) {
-              toUpdate.push({
-                unit_id: data.unit_id,
-                date: data.date,
-                ...newInsumo,
-                updated_at: new Date(),
-              });
-              return true;
+              if (updatedFields[newInsumo.hour]) {
+                updatedFields[newInsumo.hour].push(
+                  key as keyof typeof newInsumo,
+                );
+              } else {
+                updatedFields[newInsumo.hour] = [key as keyof typeof newInsumo];
+
+                toUpdate.push({
+                  unit_id: data.unit_id,
+                  date: data.date,
+                  ...newInsumo,
+                  updated_at: new Date(),
+                });
+              }
             }
           }
         });
