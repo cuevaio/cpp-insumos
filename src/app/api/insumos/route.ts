@@ -169,7 +169,7 @@ export const POST = async (request: Request) => {
     return Response.json({
       data: {
         inserted: toInsert.map((x) => Number(x.hour)),
-        updated: toUpdate.map((x) => Number(x.hour)),
+        updated: updatedFields,
       },
     });
   } catch (error) {
